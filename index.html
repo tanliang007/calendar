@@ -196,13 +196,15 @@
 	</style>
 	<style>
 		/* 日历样式 */
-
+		#box{
+			margin-top: 10px;
+		}
 		table {
-			width: 95%;
+			width: 97%;
 			margin: 0 auto;
 		}
 
-		table>thead {
+		table > thead {
 			width: 100%;
 
 		}
@@ -214,7 +216,7 @@
 
 		.week>th {
 			flex: 1;
-			font-size: 0.3rem;
+			font-size: 0.32rem;
 			background-color: skyblue;
 		}
 
@@ -234,6 +236,16 @@
 			display: block;
 			text-align: center;
 		}
+
+		.hasqian{
+			
+		}
+		.notqian{
+			color:skyblue;
+		}
+		.jintian{
+			background: #fee784;
+		}
 	</style>
 </head>
 
@@ -252,8 +264,8 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-for="(item,index) in CalendarArr" class="everyday">
-					<td>{{item.showday}}</td>
+				<tr @click='Signtoday(item.day,$event)' :class= "[ item.day!='' ?  (item.isSelect == 'Y' ? 'hasqian' : 'notqian'):'' , 'everyday', typeof(item.day)==='string'&&item.day!='' ? 'jintian': '']" v-for="(item,index) in CalendarArr"  >
+					<td>{{ item.day }}</td>
 				</tr>
 			</tbody>
 		</table>
@@ -264,6 +276,7 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.min.js"></script>
 <script>
 	//判断当前年份是否是闰年(闰年2月份有29天，平年2月份只有28天)
+	
 	var config = {
 		get: function (url, fn) {
 			var xhr = new XMLHttpRequest(); // XMLHttpRequest对象用于在后台与服务器交换数据          
@@ -288,31 +301,45 @@
 			xhr.send(data);
 		},
 		getCalendar: function () {
-			var i, k,
+			var empty = 0; // 记录前面为空数量
+			var backempty = 0;
+			var i,
+				  k,
 				arr = [],
-				today = new Date(), // 获取当前日期
+				today = new Date( '2018/02/18' ), // 获取当前日期
 				y = today.getFullYear(), // 获取日期中的年份
-				m = today.getMonth() + 1, // 获取日期中的月份(需要注意的是：月份是从0开始计算，获取的值比正常月份的值少1)
+				m = today.getMonth(), // 获取日期中的月份(需要注意的是：月份是从0开始计算，获取的值比正常月份的值少1)
 				d = today.getDate(), // 获取日期中的日(方便在建立日期表格时高亮显示当天)
 				firstday = new Date(y, m, 1), // 获取当月的第一天
 				dayOfWeek = firstday.getDay(), // 判断第一天是星期几(返回[0-6]中的一个，0代表星期天，1代表星期一，以此类推)
 				days_per_month = new Array(31, 28 + this.isLeap(y), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31), //创建月份数组
 				str_nums = Math.ceil((dayOfWeek + days_per_month[m]) / 7); //确定日期表格所需的行数
+		
 			for (i = 0; i < str_nums; i += 1) { //二维数组创建日期表格
 				for (k = 0; k < 7; k++) {
 					var obj = {};
-					var idx = 7 * i + k; //为每个表格创建索引,从0开始
+					var idx = 7 * i + k; // 从0开始
 					// console.log(idx)
 					var date = idx - dayOfWeek + 1; //将当月的1号与星期进行匹配
-
-					(date <= 0 || date > days_per_month[m]) ? date = '': date = idx - dayOfWeek + 1; //索引小于等于0或者大于月份最大值就用空表格代替
+					if(date <= 0){
+						empty++
+					}	else if(date > days_per_month[m]){
+						backempty++
+					}
+					(date <= 0 || date > days_per_month[m]) ? date = ''  : date = idx - dayOfWeek + 1; //索引小于等于0或者大于月份最大值就用空表格代替
 					date == d ? date = date.toString() : date = date; //高亮显示当天
-					obj.showday = date;
-					arr.push(obj)
+					arr.push({
+						'day':date,
+						'isSelect':"N"
+					});
+					
 
 				}
+			
 			}
-			return arr;
+			// console.log('-------'+empty)
+			
+			return [arr,empty,backempty];
 		},
 		isLeap: function (year) {
 			return year % 4 == 0 ? (year % 100 != 0 ? 1 : (year % 400 == 0 ? 1 : 0)) : 0;
@@ -323,12 +350,37 @@
 	var app = new Vue({
 		el: '#box',
 		data: {
-			CalendarArr: []
-		},
+			CalendarArr: [],
+			qiandaoArray:{today:'2018.4.18',arr:['Y','Y','Y','Y','Y','N','Y','Y','Y','Y','Y','Y',
+			'Y','Y','Y','Y','N','N','N','N','N','N','N','N','N','N','N','N','N','N']}
+			
+		},		
 		created() {
-			this.CalendarArr = config.getCalendar()
-			console.log(config.getCalendar())
+			this.CalendarArr = config.getCalendar()[0]
+			console.log(config.getCalendar()[2])
+			var abbr = []	
+			console.log()
+			var j = 0;
+			for (var index = config.getCalendar()[1]; index < this.CalendarArr.length -config.getCalendar()[2]; index++) {				
+				var element =  this.CalendarArr[index];
+			  element.isSelect = this.qiandaoArray.arr[j]
+				j++;
+				// console.log( element.isSelect )
+			}
+			console.log( JSON.stringify(this.CalendarArr))	
+		},
+		mounted: function () {
+		},
+		methods: {
+			Signtoday(curdayLength,e){
+				var parNodeclass = e.target.parentNode.className.split(' ')
+				parNodeclass = parNodeclass[parNodeclass.length-1]
+				console.log(curdayLength)
 
+		    if(parNodeclass == 'jintian'){ //是当天日期
+					
+				}
+			}
 		}
 	})
 </script>

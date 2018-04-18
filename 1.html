@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Document</title>
+</head>
+<body>
+	
+</body>
+</html>
+<script>
+	var str = "P/N:S2-10686-Z1L19;SN:MP0617412B0F2AC;IMEI:866710034828043;BTMAC:381C4A1666CE;SW:1418B07SIM800C24_BT"
+	var arr = str.split(';')
+	var n = "";
+	console.log(arr)
+	var abc = arr.forEach(function(v,i){
+		if(v.split(':')[0] == "IMEI"){
+			n = v.split(':')[1]
+		}
+	})
+	console.log(n)
+</script>
